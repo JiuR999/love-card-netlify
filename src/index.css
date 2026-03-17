@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: "SuperWoobly";
+    src: url("/src/assets/fonts/SuperWoobly-8MJlz.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+@font-face {
+    font-family: "ChubbyAnimal";
+    src: url("/src/assets/fonts/ChubbyAnimal-8OedM.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
