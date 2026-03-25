@@ -35,9 +35,9 @@ const App = () => {
     return saved ? JSON.parse(saved) : {
       eventTitle: '养宝宝',
       anniversaryDate: '2024-01-18',
-      roleAName: '小明',
-      roleBName: '小红',
-      city: '北京',
+      roleAName: '1',
+      roleBName: '9',
+      city: '南充',
       emailHost: 'smtp.qq.com',
       emailUser: '',
       emailPass: '',
@@ -55,7 +55,7 @@ const App = () => {
       contentType: 'standard',
       hitokoto: '我将在茫茫人海中寻访我唯一之灵魂伴侣。得之，我幸；不得，我命。',
       customHtml: '<div style="text-align:center;"><h2 style="color:#e11d48;font-size:1.5rem;font-weight:bold;">特别的爱</h2><p style="color:#4b5563;margin-top:10px;">给特别的你</p></div>',
-      weather: '晴转多云 22°C ~ 28°C',
+      weather: '晴转多云 8°C ~ 15°C',
       days: 0,
       background: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop',
       daysFont: 'system-ui, sans-serif',
@@ -91,7 +91,7 @@ const App = () => {
           return;
         } */
     setIsSyncing(true);
-
+    cardData.background = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop'  
     try {
       const response = await fetch("/api/github-sync", {
         method: "POST",
@@ -100,8 +100,9 @@ const App = () => {
         },
         body: JSON.stringify({ config, cardData }),
       });
-
       const result = await response.json();
+
+      console.log(result)
 
       if (!response.ok) {
         throw new Error(result?.error || "同步失败");
@@ -149,6 +150,9 @@ const App = () => {
 
     try {
       const response = await fetch("/api/github-sync");
+
+      console.log(response)
+
       const result = await response.json();
 
       if (!response.ok) {
@@ -162,6 +166,7 @@ const App = () => {
     } catch (err) {
       console.error("fetchFromGithub error:", err);
       showToast("获取云端数据失败");
+      // console.log(config);
     } finally {
       setIsSyncing(false);
     }
@@ -248,7 +253,8 @@ const App = () => {
   const handleSaveConfig = () => {
     localStorage.setItem('loveCardConfig', JSON.stringify(config));
     localStorage.setItem('loveCardStyle', JSON.stringify(cardData));
-    showToast('本地设置已保存！');
+    syncToGithub()
+    // showToast('本地设置已保存！');
   };
 
   const captureElement = async (element, fileName) => {
@@ -330,7 +336,7 @@ const App = () => {
               <div className="absolute inset-0 z-1 bg-black/10 backdrop-blur-[2px]"></div>
 
               <div ref={cardRef} className="z-10 w-full max-w-[380px] aspect-[1/1.3] rounded-[48px] shadow-2xl overflow-hidden flex flex-col relative transition-all duration-500 transform-gpu">
-                {cardData.style === 'glass' ? (
+                {/*                 {cardData.style === 'glass' ? (
                   <div className="w-full h-full flex flex-col items-center text-center p-8 relative">
                     <div className="absolute inset-0 z-0" style={{ backgroundColor: `rgba(255, 255, 255, ${cardData.glassOpacity})`, backdropFilter: `blur(${cardData.glassBlur}px)`, WebkitBackdropFilter: `blur(${cardData.glassBlur}px)` }} />
                     <div className="relative z-10 w-full h-full flex flex-col items-center">
@@ -383,7 +389,134 @@ const App = () => {
                       </div>
                     </div>
                   </div>
+                )} */}
+
+                {cardData.style === 'glass' ? (
+                  <div className="w-full h-full flex flex-col items-center text-center p-8 relative">
+                    <div className="absolute inset-0 z-0" style={{ backgroundColor: `rgba(255, 255, 255, ${cardData.glassOpacity})`, backdropFilter: `blur(${cardData.glassBlur}px)`, WebkitBackdropFilter: `blur(${cardData.glassBlur}px)` }} />
+                    <div className="relative z-10 w-full h-full flex flex-col items-center">
+
+                      {/* 顶部天气 */}
+                      <div className="flex justify-center items-center space-x-2 text-[10px] font-bold text-gray-600 mb-8 uppercase tracking-widest pt-2">
+                        <Cloud size={14} className="text-blue-500" />
+                        <span>{config.city} • {cardData.weather}</span>
+                      </div>
+
+                      <div className="flex-1 flex flex-col items-center justify-center w-full">
+                        {/* 1. 标题 */}
+                        <div className="flex items-center justify-center mb-3">
+                          <Heart size={14} className="text-rose-500 fill-rose-500 mr-2" />
+                          <h2 className="text-lg text-slate-800 tracking-tight" style={
+                            {
+                              color: cardData.daysColor,
+                              textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none'
+                            }
+                          }>{config.eventTitle}</h2>
+                        </div>
+
+                        {/* 2. 名字 (放在标题和相爱中间) */}
+                        {/*                         {(
+                          <div className="flex items-center justify-center space-x-3 mb-6 animate-fade-in">
+                            <span className="text-xs font-bold text-slate-700 bg-white/30 px-3 py-1 rounded-full border border-white/20">1</span>
+                            <Heart size={10} className="text-rose-500 fill-rose-500 animate-pulse" />
+                            <span className="text-xs font-bold text-slate-700 bg-white/30 px-3 py-1 rounded-full border border-white/20">{config.roleBName}</span>
+                          </div>
+                        )} */}
+
+                        {/* 3. 相爱第 */}
+                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1">{config.roleBName}&{config.roleAName}在一起第</p>
+                        <div className="text-7xl mb-6 transition-all duration-300" style={{ fontFamily: cardData.daysFont, color: cardData.daysColor, fontWeight: cardData.daysWeight, textShadow: cardData.daysShadow ? `0 4px 12px ${cardData.daysColor}40` : 'none', letterSpacing: '-0.05em' }}>{cardData.days}</div>
+
+                        <div className="w-full px-4 text-center">
+                          {cardData.contentType === 'standard' ? (<p className="text-sm text-gray-700 italic leading-relaxed font-medium">"{cardData.hitokoto}"</p>) : (<div className="w-full text-sm leading-relaxed text-gray-700 text-center" dangerouslySetInnerHTML={{ __html: cardData.customHtml }} />)}
+                        </div>
+                      </div>
+
+                      <div className="w-full pt-6 flex justify-between items-center text-[10px] text-gray-500 font-mono font-bold mt-4 opacity-60 uppercase">
+                        <span>{new Date().toLocaleDateString()}</span>
+                        <span>Sweet Love</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* --- 拼贴模式 --- */
+                  <div className="w-full h-full flex flex-col bg-white">
+                    <div className="relative h-[50%] w-full overflow-hidden">
+                      <img src={cardData.background} className="w-full h-full object-cover" alt="Background" />
+                      <div className="absolute top-6 right-6 bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center space-x-2 shadow-sm border border-white/50 z-20">
+                        <Cloud size={14} className="text-blue-400" />
+                        <span className="text-[10px] font-bold text-gray-600 tracking-tight">{config.city} • {cardData.weather}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 bg-gradient-to-b from-white to-rose-50/20 p-8 pt-6 flex flex-col items-center text-center">
+                      {/* 1. 标题 */}
+                      <div className="flex items-center justify-center mb-3">
+                        <Heart size={14} className="text-rose-500 fill-rose-500 mr-2 opacity-80" />
+                        <h2 className="text-xl font-black text-slate-700 tracking-tight"
+                          style={
+                            {
+                              fontFamily: 'Copperplate, serif',
+                              // fontStyle: 'bold',
+                              color: cardData.daysColor,
+                              textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}10` : 'none'
+                            }
+                          }>{config.eventTitle}</h2>
+                      </div>
+
+                      {/* 2. 名字 (放在标题和相爱中间) */}
+                      {/*                     {(
+                      <div className="flex items-center space-x-2 mb-4">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter italic">{config.roleAName}</span>
+                        <div className="w-6 h-[1px] bg-rose-200"></div>
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter italic">{config.roleBName}</span>
+                      </div>
+                    )} */}
+
+                      {/* 3. 相爱第 */}
+                      {/*                     <p className="text-gray-400 text-[9px] font-bold uppercase tracking-[0.2em] mb-2">相爱第</p>
+                    <div className="flex items-baseline mb-4 transition-all duration-300">
+                      <span className="text-6xl leading-none" style={{ fontFamily: cardData.daysFont, color: cardData.daysColor, fontWeight: cardData.daysWeight, textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none' }}>{cardData.days}</span>
+                      <span className="text-[10px] font-bold text-gray-400 ml-1.5 uppercase tracking-widest font-mono">Days</span>
+                    </div> */}
+
+                      <div className="flex items-center justify-center space-x-3 mb-6 w-full">
+                        <div className="h-3 w-[1px] bg-slate-200 mx-1"></div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">
+{/*                           <span className="text-base italic font-bold text-slate-700" style={{
+                            fontSize: '0.9rem',
+                            fontFamily: cardData.daysFont, color: cardData.daysColor, fontWeight: cardData.daysWeight, textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none'
+                          }}>{config.roleBName}</span>
+                          <Heart size={10} className="text-rose-400 fill-rose-400" />
+                          <span className="italic font-bold text-base" style={{
+                            fontSize: '0.9rem',
+                            fontFamily: cardData.daysFont,
+                            color: cardData.daysColor,
+                            fontWeight: cardData.daysWeight,
+                            textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none',
+                            letterSpacing: '-0.05em'
+                          }}>{config.roleAName}</span> */}
+                          {config.roleBName}  {config.roleAName}相爱第</span>
+
+                      </div>
+
+
+                      <div className="flex items-baseline mb-4 transition-all duration-300">
+                        <span className="text-6xl leading-none" style={{ fontFamily: cardData.daysFont, color: cardData.daysColor, fontWeight: cardData.daysWeight, textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none' }}>{cardData.days}</span>
+                        <span className="text-[10px] font-bold text-gray-400 ml-1.5 uppercase tracking-widest font-mono">Days</span>
+                      </div>
+
+                      <div className="flex-1 w-full flex items-center justify-center px-4 overflow-hidden">
+                        {cardData.contentType === 'standard' ? (<p className="text-sm text-gray-600 italic leading-relaxed font-medium line-clamp-3">"{cardData.hitokoto}"</p>) : (<div className="w-full text-sm leading-relaxed text-gray-700 text-center" dangerouslySetInnerHTML={{ __html: cardData.customHtml }} />)}
+                      </div>
+                      <div className="w-full pt-4 flex justify-between items-center text-[9px] text-gray-400 font-bold border-t border-gray-100 mt-4 uppercase tracking-widest font-mono">
+                        <span>{new Date().toLocaleDateString()}</span>
+                        <span>Sweet Love</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
+
               </div>
 
               {!isCapturing && (
