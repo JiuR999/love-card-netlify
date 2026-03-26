@@ -34,7 +34,7 @@ const App = () => {
     const saved = localStorage.getItem('loveCardConfig');
     return saved ? JSON.parse(saved) : {
       eventTitle: '养宝宝',
-      anniversaryDate: '2024-01-18',
+      anniversaryDate: '2026-01-19',
       roleAName: '1',
       roleBName: '9',
       city: '南充',
@@ -91,7 +91,7 @@ const App = () => {
           return;
         } */
     setIsSyncing(true);
-    cardData.background = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop'  
+    // cardData.background = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop'  
     try {
       const response = await fetch("/api/github-sync", {
         method: "POST",
@@ -151,8 +151,6 @@ const App = () => {
     try {
       const response = await fetch("/api/github-sync");
 
-      console.log(response)
-
       const result = await response.json();
 
       if (!response.ok) {
@@ -161,7 +159,11 @@ const App = () => {
 
       if (result.config) setConfig(result.config);
       if (result.cardData) setCardData(result.cardData);
-
+      const start = new Date(result.config.anniversaryDate);
+      const today = new Date();
+      const diffTime = Math.abs(today - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setCardData(prev => ({ ...prev, days: diffDays }));
       showToast("云端数据已恢复");
     } catch (err) {
       console.error("fetchFromGithub error:", err);
@@ -223,6 +225,20 @@ const App = () => {
   };
 
 
+    // 获取天气
+    const fetchWeather = async () => {
+      setIsRefreshing(true);
+      try {
+        const res = await fetch('https://v1.hitokoto.cn/?c=i&c=k');
+        const data = await res.json();
+        setCardData(prev => ({ ...prev, hitokoto: data.hitokoto, contentType: 'standard' }));
+      } catch (error) {
+        showToast('获取文案失败');
+      } finally {
+        setTimeout(() => setIsRefreshing(false), 500);
+      }
+    };
+
   useEffect(() => {
     fetchFromGithub();
   }, []);
@@ -279,12 +295,51 @@ const App = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => { setCardData(prev => ({ ...prev, background: reader.result })); };
-      reader.readAsDataURL(file);
+    // if (file) {
+    //   const reader = new FileReader();
+    //   reader.onloadend = () => { setCardData(prev => ({ ...prev, background: reader.result })); };
+    //   reader.readAsDataURL(file);
+    // }
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          // 如果你有 token，就打开这一行
+          // Authorization: "Bearer 你的token",
+        },
+        body: formData,
+        credentials: "omit",
+      });
+
+      console.log("upload: ", res)
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const result = await res.json();
+
+      if (result.status) {
+        const url = result.data.links.url;
+
+        console.log(url)
+        setCardData(prev => ({
+          ...prev,
+          background: url
+        }));
+      } else {
+        console.error("上传失败:", result.message);
+      }
+    } catch (err) {
+      console.error("上传出错:", err);
     }
   };
 
@@ -483,7 +538,7 @@ const App = () => {
                       <div className="flex items-center justify-center space-x-3 mb-6 w-full">
                         <div className="h-3 w-[1px] bg-slate-200 mx-1"></div>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">
-{/*                           <span className="text-base italic font-bold text-slate-700" style={{
+                          {/*                           <span className="text-base italic font-bold text-slate-700" style={{
                             fontSize: '0.9rem',
                             fontFamily: cardData.daysFont, color: cardData.daysColor, fontWeight: cardData.daysWeight, textShadow: cardData.daysShadow ? `0 4px 10px ${cardData.daysColor}30` : 'none'
                           }}>{config.roleBName}</span>
