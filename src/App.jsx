@@ -162,7 +162,10 @@ const App = () => {
       const today = new Date();
       const diffTime = Math.abs(today - start);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (result.cardData) setCardData(prev => ({ ...prev, days: diffDays }));
+      if (result.cardData) setCardData({
+        ...result.cardData,
+        days: diffDays
+      });
       showToast("云端数据已恢复");
     } catch (err) {
       console.error("fetchFromGithub error:", err);
@@ -233,7 +236,7 @@ const App = () => {
       });
       const data = await res.json();
       if (data.lives.length > 0) {
-        const {city, weather, temperature, winddirection, windpower, humidity} = data.lives[0]
+        const { city, weather, temperature, winddirection, windpower, humidity } = data.lives[0]
         const desc = `${city} ☁️ ${weather} | 🌡️ ${temperature}°C `
         console.log(desc, `| 🚩 ${winddirection}风 ${windpower}级 | 💧 ${humidity} humidity`)
         setCardData(prev => ({
