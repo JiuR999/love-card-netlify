@@ -21,7 +21,7 @@ const App = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSending, setIsSending] = useState(false);
-
+  const [uploading, setUploading] = useState(false);
   // --- GitHub 硬编码配置 (请在此处填写你的信息) ---
   const githubConfig = {
     owner: 'JiuR999',
@@ -67,7 +67,6 @@ const App = () => {
 
   // 定义字体列表
   const fontOptions = [
-
     { label: '系统默认', value: 'system-ui, sans-serif' },
     { label: 'SuperWoobly', value: '"SuperWoobly", sans-serif' },
     { label: 'ChubbyAnimal', value: '"ChubbyAnimal", sans-serif' },
@@ -79,8 +78,8 @@ const App = () => {
   ];
 
   const [history] = useState([
-    { date: '2024-03-14', img: 'https://images.unsplash.com/photo-1516589174184-c685266e48fc?q=80&w=400&auto=format&fit=crop', title: '相恋 55 天' },
-    { date: '2024-05-20', img: 'https://images.unsplash.com/photo-1522673607200-164883eeca48?q=80&w=400&auto=format&fit=crop', title: '第一个 520' },
+    { date: '2026-03-14', img: 'https://images.unsplash.com/photo-1516589174184-c685266e48fc?q=80&w=400&auto=format&fit=crop', title: '相恋 55 天' },
+    { date: '2026-04-29', img: 'https://images.unsplash.com/photo-1522673607200-164883eeca48?q=80&w=400&auto=format&fit=crop', title: '第一个 520' },
   ]);
 
   // GitHub 同步逻辑
@@ -158,12 +157,12 @@ const App = () => {
       }
 
       if (result.config) setConfig(result.config);
-      if (result.cardData) setCardData(result.cardData);
+
       const start = new Date(result.config.anniversaryDate);
       const today = new Date();
       const diffTime = Math.abs(today - start);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setCardData(prev => ({ ...prev, days: diffDays }));
+      if (result.cardData) setCardData(prev => ({ ...prev, days: diffDays }));
       showToast("云端数据已恢复");
     } catch (err) {
       console.error("fetchFromGithub error:", err);
@@ -225,22 +224,32 @@ const App = () => {
   };
 
 
-    // 获取天气
-    const fetchWeather = async () => {
-      setIsRefreshing(true);
-      try {
-        const res = await fetch('https://v1.hitokoto.cn/?c=i&c=k');
-        const data = await res.json();
-        setCardData(prev => ({ ...prev, hitokoto: data.hitokoto, contentType: 'standard' }));
-      } catch (error) {
-        showToast('获取文案失败');
-      } finally {
-        setTimeout(() => setIsRefreshing(false), 500);
+  // 获取天气
+  const fetchWeather = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetch('https://restapi.amap.com/v3/weather/weatherInfo?city=511300&key=68272da05fc4bee210ebe0d78320280e', {
+        method: 'GET',
+      });
+      const data = await res.json();
+      if (data.lives.length > 0) {
+        const {city, weather, temperature, winddirection, windpower, humidity} = data.lives[0]
+        const desc = `${city} ☁️ ${weather} | 🌡️ ${temperature}°C `
+        console.log(desc, `| 🚩 ${winddirection}风 ${windpower}级 | 💧 ${humidity} humidity`)
+        setCardData(prev => ({
+          ...prev,
+          weather: desc
+        }))
       }
-    };
+      // setCardData(prev => ({ ...prev, hitokoto: data.hitokoto, contentType: 'standard' }));
+    } catch (error) {
+      showToast('获取天气失败');
+    }
+  };
 
   useEffect(() => {
     fetchFromGithub();
+    fetchWeather();
   }, []);
   // 计算天数
   useEffect(() => {
@@ -303,7 +312,7 @@ const App = () => {
     //   reader.readAsDataURL(file);
     // }
     if (!file) return;
-
+    setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -336,10 +345,13 @@ const App = () => {
           background: url
         }));
       } else {
-        console.error("上传失败:", result.message);
+        alert("上传失败：" + result.message);
       }
     } catch (err) {
       console.error("上传出错:", err);
+      alert("上传出错");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -669,9 +681,11 @@ const App = () => {
                   <h3 className="text-sm font-bold mb-4 flex items-center text-gray-700"><ImageIcon size={16} className="mr-2 text-rose-500" /> 背景底图</h3>
                   <div className="grid grid-cols-1 gap-3">
                     <label className="flex items-center justify-center py-5 border-2 border-dashed border-gray-200 rounded-3xl cursor-pointer hover:bg-gray-50 hover:border-rose-200 transition group">
+
                       <input type="file" className="hidden" onChange={handleImageUpload} />
                       <Upload size={18} className="mr-2 text-gray-400 group-hover:text-rose-500 transition" />
-                      <span className="text-xs text-gray-500 group-hover:text-rose-600 font-medium">上传本地图片</span>
+                      {uploading ? "上传中..." : <span className="text-xs text-gray-500 group-hover:text-rose-600 font-medium">上传本地图片</span>}
+
                     </label>
                     <button onClick={refreshBackground} disabled={isBgLoading} className="w-full py-4 bg-white border border-gray-100 text-gray-600 text-[11px] rounded-2xl hover:bg-gray-50 font-bold transition flex items-center justify-center active:scale-[0.98] disabled:opacity-50">
                       <RefreshCw size={14} className={`mr-2 text-rose-500 ${isBgLoading ? 'animate-spin' : ''}`} />
